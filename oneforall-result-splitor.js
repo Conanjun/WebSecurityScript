@@ -1,21 +1,28 @@
-const { writeFile } = require('fs/promises');
+const { writeFile, readdir } = require('fs/promises');
 const moment = require('moment');
 
-moment.locale('zh-cn');
+const selector = process.argv[2];
 
-const path = __dirname;
-const name = process.argv[2];
+const filename = `./output/oneforall/all/${moment().format('YYYY-MM-DD_HH.mm.ss')}.txt`;
+const path = './oneforall-results/';
 
-const json = require(path + '/' + name);
-
-const filename = `./output/oneforall/${moment().format('YYYY-MM-DD_HH.mm.ss')}.txt`;
-
-let dict = '';
-
-json.map( e => {
-    dict += e.subdomain + '\n';
-});
+const dict = [];
 
 (async function(){
-    await writeFile(filename, dict, { encoding: 'utf-8', flag: 'w' });
+    const files = await readdir(path);
+    for(let i of files){
+        let flag = false;
+        const json = require(path + i);
+        const temp = [];
+        json.map( e => {
+            temp.push(e.subdomain);
+            if(e.subdomain === selector){
+                flag = true;
+            }
+        });
+        if(flag){
+            await writeFile(filename, temp.join('\n'), { encoding: 'utf-8', flag: 'w' });
+            break;
+        }
+    }
 })();
